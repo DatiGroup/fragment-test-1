@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IngestMonitoringEvent",
+  "description": "Event emitted by this ingest fragment to report its data ingestion status to data-ingest-monitor.",
+  "type": "object",
+  "required": ["source", "status", "timestamp"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Identifier of the ingest fragment publishing the event."
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Human-readable instance name set by the orchestrator from digital_twin_fragment.name. Optional — older publishers may omit it."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["status_change", "heartbeat"],
+      "default": "status_change",
+      "description": "Type of monitoring event."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "error", "degraded"],
+      "description": "Current ingest status."
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable message (error details, etc.)."
+    },
+    "records_processed": {
+      "type": "integer",
+      "description": "Number of records processed in the last ingest cycle."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the event."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional additional metadata."
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Test Fragment 1 - Counter API",
+    "version": "1.0.0",
+    "description": "OpenAPI specification for the Counter API used by test-fragment-1.\nEndpoints: /healthcheck, /counter (GET/POST)."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/healthcheck": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Service health",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/counter": {
+      "get": {
+        "summary": "Get current counter value",
+        "operationId": "getCounter",
+        "responses": {
+          "200": {
+            "description": "Current counter value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CounterOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Set counter value",
+        "operationId": "setCounter",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CounterIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated counter value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CounterOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        },
+        "required": ["status"]
+      },
+      "CounterIn": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          }
+        },
+        "required": ["value"]
+      },
+      "CounterOut": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          }
+        },
+        "required": ["value"]
+      }
+    }
+  }
+}

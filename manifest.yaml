@@ -1,0 +1,105 @@
+apiVersion: dtb.fragments/v1
+kind: Fragment
+
+metadata:
+  id: test-fragment-1
+  name: "Test Fragment 1"
+  version: "${VERSION}"
+  description: "Test Fragment F1 demonstrating a digital twin application with API and worker components."
+  owner: team-digitdevops
+  license: Apache-2.0
+  tags: [fragment, digital-twin]
+
+spec:
+  deployment:
+    # Each component's `path` is a folder with a Dockerfile. At publish time the
+    # image is built and `path` is replaced with an imageRegistry `ref`; the
+    # Kubernetes manifest (/k8s/manifest.yaml) is referenced the same way.
+    components:
+      - name: worker
+        path: /worker
+        resources:
+          - key: kafka
+            type: kafka
+            topics:
+              - key: f1.events
+                # Placeholder only — the actual env value comes from the
+                # orchestrator's `KAFKA_CONSUMER_GROUP` (platform default:
+                # "{short_id}-{short_frag}-consumer-group"), overridable per
+                # connection via config.overrides.kafkaConsumerGroup.
+                kafkaConsumerGroup: ${KAFKA_CONSUMER_GROUP}
+              - key: monitoring.ingest-events
+                description: "Heartbeat and status events emitted to data-ingest-monitor"
+
+      - name: api
+        path: /api
+        resources:
+          - key: primary
+            type: database
+
+    # Datastores are provisioned by the platform; their connection settings
+    # reach the components through the Kubernetes Secret named in k8s/manifest.yaml.
+    datastores:
+      - key: primary
+        type: database
+        engine: postgres
+        description: "Main persistence store for Fragment 1"
+
+      - key: kafka
+        type: kafka
+        topics:
+          - key: f1.events # deployed as {DT_GUID}.{FRAGMENT_ID}.{key}
+            description: "Domain events produced by Fragment 1"
+          - key: monitoring.ingest-events
+            description: "Heartbeat and status events emitted to data-ingest-monitor"
+
+  contracts:
+    produces:
+      kafka:
+        topics:
+          - key: f1.events
+            description: "Counter information is published to this topic."
+            payload:
+              dataType: com.example.f1.Event
+              contentType: application/json
+              schema:
+                format: jsonschema
+                version: "${VERSION}"
+                path: /schemas/produces/kafka/f1.events.counter-event.v1.json
+
+          - key: monitoring.ingest-events
+            description: "Heartbeat and status events emitted by the worker to data-ingest-monitor."
+            payload:
+              dataType: com.digitdevops.monitoring.IngestEvent
+              contentType: application/json
+              schema:
+                format: jsonschema
+                version: "${VERSION}"
+                path: /schemas/produces/kafka/monitoring.ingest-events.v1.json
+
+      rest:
+        openapi:
+          key: data-api
+          format: openapi-json
+          version: "${VERSION}"
+          path: /schemas/produces/openapi/produces.openapi.json
+          description: "OpenAPI document describing REST endpoints produced by this fragment."
+
+      websocket:
+        - key: counter-stream
+          direction: producer-to-consumer
+          path: /ws/counter
+          description: "Live counter value stream via WebSocket at /ws/counter"
+          payload:
+            dataType: com.example.f1.CounterValue
+            contentType: application/json
+            schema:
+              format: jsonschema
+              version: "${VERSION}"
+              path: /schemas/produces/websocket/counter-stream.v1.json
+
+readme:
+  path: /README.md
+
+notes:
+  - "Produces a counter on Kafka (f1.events), over WebSocket (/ws/counter) and REST; test-fragment-2 consumes the Kafka topic."
